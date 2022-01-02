@@ -1,3 +1,6 @@
+// Подключение списка активных модулей
+import { flsModules } from "./modules.js";
+
 /* Проверка поддержки webp, добавление класса webp или no-webp для HTML */
 export function isWebp() {
 	// Проверка поддержки webp
@@ -35,6 +38,7 @@ export function getHash() {
 }
 // Указание хеша в адресе сайта
 export function setHash(hash) {
+	hash = hash ? `#${hash}` : window.location.href.split('#')[0];
 	history.pushState('', '', hash);
 }
 // Учет плавающей панели на мобильных устройствах при 100vh
@@ -74,6 +78,12 @@ export let _slideUp = (target, duration = 500, showmore = 0) => {
 			target.style.removeProperty('transition-duration');
 			target.style.removeProperty('transition-property');
 			target.classList.remove('_slide');
+			// Создаем событие 
+			document.dispatchEvent(new CustomEvent("slideUpDone", {
+				detail: {
+					target: target
+				}
+			}));
 		}, duration);
 	}
 }
@@ -103,6 +113,12 @@ export let _slideDown = (target, duration = 500, showmore = 0) => {
 			target.style.removeProperty('transition-duration');
 			target.style.removeProperty('transition-property');
 			target.classList.remove('_slide');
+			// Создаем событие 
+			document.dispatchEvent(new CustomEvent("slideDownDone", {
+				detail: {
+					target: target
+				}
+			}));
 		}, duration);
 	}
 }
@@ -210,8 +226,9 @@ export function spollers() {
 		}
 		// Работа с контентом
 		function initSpollerBody(spollersBlock, hideSpollerBody = true) {
-			const spollerTitles = spollersBlock.querySelectorAll('[data-spoller]');
-			if (spollerTitles.length > 0) {
+			let spollerTitles = spollersBlock.querySelectorAll('[data-spoller]');
+			if (spollerTitles.length) {
+				spollerTitles = Array.from(spollerTitles).filter(item => item.closest('[data-spollers]') === spollersBlock);
 				spollerTitles.forEach(spollerTitle => {
 					if (hideSpollerBody) {
 						spollerTitle.removeAttribute('tabindex');
@@ -255,13 +272,14 @@ export function spollers() {
 Для родителя табов пишем атрибут data-tabs
 Для родителя заголовков табов пишем атрибут data-tabs-titles
 Для родителя блоков табов пишем атрибут data-tabs-body
+Для родителя блоков табов можно указать data-tabs-hash, это втключит добавление хеша
 
 Если нужно чтобы табы открывались с анимацией 
 добавляем к data-tabs data-tabs-animate
 По умолчанию, скорость анимации 500ms, 
 указать свою скорость можно так: data-tabs-animate="1000"
 
-Если нужно чтобы табы превращались в "спойлеры" на неком размере экранов пишем параметры ширины.
+Если нужно чтобы табы превращались в "спойлеры", на неком размере экранов, пишем параметры ширины.
 Например: data-tabs="992" - табы будут превращаться в спойлеры на экранах меньше или равно 992px
 */
 export function tabs() {
@@ -269,8 +287,8 @@ export function tabs() {
 	let tabsActiveHash = [];
 
 	if (tabs.length > 0) {
-		const hash = location.hash.replace('#', '');
-		if (hash.startsWith('tab-')) {
+		const hash = getHash();
+		if (hash && hash.startsWith('tab-')) {
 			tabsActiveHash = hash.replace('tab-', '').split('-');
 		}
 		tabs.forEach((tabsBlock, index) => {
@@ -296,10 +314,12 @@ export function tabs() {
 	function setTitlePosition(tabsMediaArray, matchMedia) {
 		tabsMediaArray.forEach(tabsMediaItem => {
 			tabsMediaItem = tabsMediaItem.item;
-			const tabsTitles = tabsMediaItem.querySelector('[data-tabs-titles]');
-			const tabsTitleItems = tabsMediaItem.querySelectorAll('[data-tabs-title]');
-			const tabsContent = tabsMediaItem.querySelector('[data-tabs-body]');
-			const tabsContentItems = tabsMediaItem.querySelectorAll('[data-tabs-item]');
+			let tabsTitles = tabsMediaItem.querySelector('[data-tabs-titles]');
+			let tabsTitleItems = tabsMediaItem.querySelectorAll('[data-tabs-title]');
+			let tabsContent = tabsMediaItem.querySelector('[data-tabs-body]');
+			let tabsContentItems = tabsMediaItem.querySelectorAll('[data-tabs-item]');
+			tabsTitleItems = Array.from(tabsTitleItems).filter(item => item.closest('[data-tabs]') === tabsMediaItem);
+			tabsContentItems = Array.from(tabsContentItems).filter(item => item.closest('[data-tabs]') === tabsMediaItem);
 			tabsContentItems.forEach((tabsContentItem, index) => {
 				if (matchMedia.matches) {
 					tabsContent.append(tabsTitleItems[index]);
@@ -314,16 +334,18 @@ export function tabs() {
 	}
 	// Работа с контентом
 	function initTabs(tabsBlock) {
-		const tabsTitles = tabsBlock.querySelectorAll('[data-tabs-titles]>*');
-		const tabsContent = tabsBlock.querySelectorAll('[data-tabs-body]>*');
+		let tabsTitles = tabsBlock.querySelectorAll('[data-tabs-titles]>*');
+		let tabsContent = tabsBlock.querySelectorAll('[data-tabs-body]>*');
 		const tabsBlockIndex = tabsBlock.dataset.tabsIndex;
 		const tabsActiveHashBlock = tabsActiveHash[0] == tabsBlockIndex;
 
 		if (tabsActiveHashBlock) {
 			const tabsActiveTitle = tabsBlock.querySelector('[data-tabs-titles]>._tab-active');
-			tabsActiveTitle.classList.remove('_tab-active');
+			tabsActiveTitle ? tabsActiveTitle.classList.remove('_tab-active') : null;
 		}
-		if (tabsContent.length > 0) {
+		if (tabsContent.length) {
+			tabsContent = Array.from(tabsContent).filter(item => item.closest('[data-tabs]') === tabsBlock);
+			tabsTitles = Array.from(tabsTitles).filter(item => item.closest('[data-tabs]') === tabsBlock);
 			tabsContent.forEach((tabsContentItem, index) => {
 				tabsTitles[index].setAttribute('data-tabs-title', '');
 				tabsContentItem.setAttribute('data-tabs-item', '');
@@ -336,18 +358,19 @@ export function tabs() {
 		}
 	}
 	function setTabsStatus(tabsBlock) {
-		const tabsTitles = tabsBlock.querySelectorAll('[data-tabs-title]');
-		const tabsContent = tabsBlock.querySelectorAll('[data-tabs-item]');
+		let tabsTitles = tabsBlock.querySelectorAll('[data-tabs-title]');
+		let tabsContent = tabsBlock.querySelectorAll('[data-tabs-item]');
 		const tabsBlockIndex = tabsBlock.dataset.tabsIndex;
-
 		function isTabsAnamate(tabsBlock) {
 			if (tabsBlock.hasAttribute('data-tabs-animate')) {
-				return tabsBlock.dataset.tabsAnimate > 0 ? tabsBlock.dataset.tabsAnimate : 500;
+				return tabsBlock.dataset.tabsAnimate > 0 ? Number(tabsBlock.dataset.tabsAnimate) : 500;
 			}
 		}
 		const tabsBlockAnimate = isTabsAnamate(tabsBlock);
-
 		if (tabsContent.length > 0) {
+			const isHash = tabsBlock.hasAttribute('data-tabs-hash');
+			tabsContent = Array.from(tabsContent).filter(item => item.closest('[data-tabs]') === tabsBlock);
+			tabsTitles = Array.from(tabsTitles).filter(item => item.closest('[data-tabs]') === tabsBlock);
 			tabsContent.forEach((tabsContentItem, index) => {
 				if (tabsTitles[index].classList.contains('_tab-active')) {
 					if (tabsBlockAnimate) {
@@ -355,8 +378,8 @@ export function tabs() {
 					} else {
 						tabsContentItem.hidden = false;
 					}
-					if (!tabsContentItem.closest('.popup')) {
-						location.hash = `tab-${tabsBlockIndex}-${index}`;
+					if (isHash && !tabsContentItem.closest('.popup')) {
+						setHash(`tab-${tabsBlockIndex}-${index}`);
 					}
 				} else {
 					if (tabsBlockAnimate) {
@@ -373,13 +396,10 @@ export function tabs() {
 		if (el.closest('[data-tabs-title]')) {
 			const tabTitle = el.closest('[data-tabs-title]');
 			const tabsBlock = tabTitle.closest('[data-tabs]');
-			if (!tabTitle.classList.contains('_tab-active') && !tabsBlock.querySelectorAll('._slide').length) {
-
-				const tabActiveTitle = tabsBlock.querySelector('[data-tabs-title]._tab-active');
-				if (tabActiveTitle) {
-					tabActiveTitle.classList.remove('_tab-active');
-				}
-
+			if (!tabTitle.classList.contains('_tab-active') && !tabsBlock.querySelector('._slide')) {
+				let tabActiveTitle = tabsBlock.querySelectorAll('[data-tabs-title]._tab-active');
+				tabActiveTitle.length ? tabActiveTitle = Array.from(tabActiveTitle).filter(item => item.closest('[data-tabs]') === tabsBlock) : null;
+				tabActiveTitle.length ? tabActiveTitle[0].classList.remove('_tab-active') : null;
 				tabTitle.classList.add('_tab-active');
 				setTabsStatus(tabsBlock);
 			}
@@ -387,7 +407,7 @@ export function tabs() {
 		}
 	}
 }
-// Модуь работы с меню (бургер) =======================================================================================================================================================================================================================
+// Модуль работы с меню (бургер) =======================================================================================================================================================================================================================
 export function menuInit() {
 	let iconMenu = document.querySelector(".icon-menu");
 	if (iconMenu) {
@@ -417,124 +437,109 @@ data-showmore-button="скорость"
 Сниппет (HTML): showmore
 */
 export function showMore() {
-	const showMoreBlocks = document.querySelectorAll('[data-showmore]');
-	let showMoreBlocksRegular;
-	let mdQueriesArray;
-	if (showMoreBlocks.length) {
-		// Получение обычных объектов
-		showMoreBlocksRegular = Array.from(showMoreBlocks).filter(function (item, index, self) {
-			return !item.dataset.showmoreMedia;
-		});
-		// Инициализация обычных объектов
-		showMoreBlocksRegular.length ? initItems(showMoreBlocksRegular) : null;
-
-		document.addEventListener("click", showMoreActions);
-		window.addEventListener("resize", showMoreActions);
-
-		// Получение объектов с медиа запросами
-		mdQueriesArray = dataMediaQueries(showMoreBlocks, "showmoreMedia");
-		if (mdQueriesArray && mdQueriesArray.length) {
-			mdQueriesArray.forEach(mdQueriesItem => {
-				// Событие
-				mdQueriesItem.matchMedia.addEventListener("change", function () {
-					initItems(mdQueriesItem.itemsArray, mdQueriesItem.matchMedia);
-				});
+	window.addEventListener("load", function (e) {
+		const showMoreBlocks = document.querySelectorAll('[data-showmore]');
+		let showMoreBlocksRegular;
+		let mdQueriesArray;
+		if (showMoreBlocks.length) {
+			// Получение обычных объектов
+			showMoreBlocksRegular = Array.from(showMoreBlocks).filter(function (item, index, self) {
+				return !item.dataset.showmoreMedia;
 			});
-			initItemsMedia(mdQueriesArray);
+			// Инициализация обычных объектов
+			showMoreBlocksRegular.length ? initItems(showMoreBlocksRegular) : null;
+
+			document.addEventListener("click", showMoreActions);
+			window.addEventListener("resize", showMoreActions);
+
+			// Получение объектов с медиа запросами
+			mdQueriesArray = dataMediaQueries(showMoreBlocks, "showmoreMedia");
+			if (mdQueriesArray && mdQueriesArray.length) {
+				mdQueriesArray.forEach(mdQueriesItem => {
+					// Событие
+					mdQueriesItem.matchMedia.addEventListener("change", function () {
+						initItems(mdQueriesItem.itemsArray, mdQueriesItem.matchMedia);
+					});
+				});
+				initItemsMedia(mdQueriesArray);
+			}
 		}
-	}
-	function initItemsMedia(mdQueriesArray) {
-		mdQueriesArray.forEach(mdQueriesItem => {
-			initItems(mdQueriesItem.itemsArray, mdQueriesItem.matchMedia);
-		});
-	}
-	function initItems(showMoreBlocks, matchMedia) {
-		showMoreBlocks.forEach(showMoreBlock => {
-			initItem(showMoreBlock, matchMedia);
-		});
-	}
-	function initItem(showMoreBlock, matchMedia = false) {
-		showMoreBlock = matchMedia ? showMoreBlock.item : showMoreBlock;
-		const showMoreContent = showMoreBlock.querySelector('[data-showmore-content]');
-		const showMoreButton = showMoreBlock.querySelector('[data-showmore-button]');
-		const hiddenHeight = getHeight(showMoreBlock, showMoreContent);
-		if (matchMedia.matches || !matchMedia) {
-			if (hiddenHeight < getOriginalHeight(showMoreContent)) {
-				_slideUp(showMoreContent, 0, hiddenHeight);
-				showMoreButton.hidden = false;
+		function initItemsMedia(mdQueriesArray) {
+			mdQueriesArray.forEach(mdQueriesItem => {
+				initItems(mdQueriesItem.itemsArray, mdQueriesItem.matchMedia);
+			});
+		}
+		function initItems(showMoreBlocks, matchMedia) {
+			showMoreBlocks.forEach(showMoreBlock => {
+				initItem(showMoreBlock, matchMedia);
+			});
+		}
+		function initItem(showMoreBlock, matchMedia = false) {
+			showMoreBlock = matchMedia ? showMoreBlock.item : showMoreBlock;
+			let showMoreContent = showMoreBlock.querySelectorAll('[data-showmore-content]');
+			let showMoreButton = showMoreBlock.querySelectorAll('[data-showmore-button]');
+			showMoreContent = Array.from(showMoreContent).filter(item => item.closest('[data-showmore]') === showMoreBlock)[0];
+			showMoreButton = Array.from(showMoreButton).filter(item => item.closest('[data-showmore]') === showMoreBlock)[0];
+			const hiddenHeight = getHeight(showMoreBlock, showMoreContent);
+			if (matchMedia.matches || !matchMedia) {
+				if (hiddenHeight < getOriginalHeight(showMoreContent)) {
+					_slideUp(showMoreContent, 0, hiddenHeight);
+					showMoreButton.hidden = false;
+				} else {
+					_slideDown(showMoreContent, 0, hiddenHeight);
+					showMoreButton.hidden = true;
+				}
 			} else {
 				_slideDown(showMoreContent, 0, hiddenHeight);
 				showMoreButton.hidden = true;
 			}
-		} else {
-			_slideDown(showMoreContent, 0, hiddenHeight);
-			showMoreButton.hidden = true;
 		}
-	}
-	function getHeight(showMoreBlock, showMoreContent) {
-		let hiddenHeight = 0;
-		const showMoreType = showMoreBlock.dataset.showmore ? showMoreBlock.dataset.showmore : 'size';
-		if (showMoreType === 'items') {
-			const showMoreTypeValue = showMoreContent.dataset.showmoreContent ? showMoreContent.dataset.showmoreContent : 3;
-			const showMoreItems = showMoreContent.children;
-			for (let index = 1; index < showMoreItems.length; index++) {
-				const showMoreItem = showMoreItems[index - 1];
-				hiddenHeight += showMoreItem.offsetHeight;
-				if (index === showMoreTypeValue) break;
-			}
-		} else {
-			const showMoreTypeValue = showMoreContent.dataset.showmoreContent ? showMoreContent.dataset.showmoreContent : 150;
-			hiddenHeight = showMoreTypeValue;
-		}
-		return hiddenHeight;
-	}
-	function getOriginalHeight(showMoreContent) {
-		let hiddenHeight = showMoreContent.offsetHeight;
-		showMoreContent.style.removeProperty('height');
-		let originalHeight = showMoreContent.offsetHeight;
-		showMoreContent.style.height = `${hiddenHeight}px`;
-		return originalHeight;
-	}
-	function showMoreActions(e) {
-		const targetEvent = e.target;
-		const targetType = e.type;
-		if (targetType === 'click') {
-			if (targetEvent.closest('[data-showmore-button]')) {
-				const showMoreButton = targetEvent.closest('[data-showmore-button]');
-				const showMoreBlock = showMoreButton.closest('[data-showmore]');
-				const showMoreContent = showMoreBlock.querySelector('[data-showmore-content]');
-				const showMoreSpeed = showMoreBlock.dataset.showmoreButton ? showMoreBlock.dataset.showmoreButton : '500';
-				const hiddenHeight = getHeight(showMoreBlock, showMoreContent);
-				if (!showMoreContent.classList.contains('_slide')) {
-					showMoreBlock.classList.contains('_showmore-active') ? _slideUp(showMoreContent, showMoreSpeed, hiddenHeight) : _slideDown(showMoreContent, showMoreSpeed, hiddenHeight);
-					showMoreBlock.classList.toggle('_showmore-active');
+		function getHeight(showMoreBlock, showMoreContent) {
+			let hiddenHeight = 0;
+			const showMoreType = showMoreBlock.dataset.showmore ? showMoreBlock.dataset.showmore : 'size';
+			if (showMoreType === 'items') {
+				const showMoreTypeValue = showMoreContent.dataset.showmoreContent ? showMoreContent.dataset.showmoreContent : 3;
+				const showMoreItems = showMoreContent.children;
+				for (let index = 1; index < showMoreItems.length; index++) {
+					const showMoreItem = showMoreItems[index - 1];
+					hiddenHeight += showMoreItem.offsetHeight;
+					if (index == showMoreTypeValue) break
 				}
+			} else {
+				const showMoreTypeValue = showMoreContent.dataset.showmoreContent ? showMoreContent.dataset.showmoreContent : 150;
+				hiddenHeight = showMoreTypeValue;
 			}
-		} else if (targetType === 'resize') {
-			showMoreBlocksRegular.length ? initItems(showMoreBlocksRegular) : null;
-			mdQueriesArray.length ? initItemsMedia(mdQueriesArray) : null;
+			return hiddenHeight;
 		}
-	}
+		function getOriginalHeight(showMoreContent) {
+			let hiddenHeight = showMoreContent.offsetHeight;
+			showMoreContent.style.removeProperty('height');
+			let originalHeight = showMoreContent.offsetHeight;
+			showMoreContent.style.height = `${hiddenHeight}px`;
+			return originalHeight;
+		}
+		function showMoreActions(e) {
+			const targetEvent = e.target;
+			const targetType = e.type;
+			if (targetType === 'click') {
+				if (targetEvent.closest('[data-showmore-button]')) {
+					const showMoreButton = targetEvent.closest('[data-showmore-button]');
+					const showMoreBlock = showMoreButton.closest('[data-showmore]');
+					const showMoreContent = showMoreBlock.querySelector('[data-showmore-content]');
+					const showMoreSpeed = showMoreBlock.dataset.showmoreButton ? showMoreBlock.dataset.showmoreButton : '500';
+					const hiddenHeight = getHeight(showMoreBlock, showMoreContent);
+					if (!showMoreContent.classList.contains('_slide')) {
+						showMoreBlock.classList.contains('_showmore-active') ? _slideUp(showMoreContent, showMoreSpeed, hiddenHeight) : _slideDown(showMoreContent, showMoreSpeed, hiddenHeight);
+						showMoreBlock.classList.toggle('_showmore-active');
+					}
+				}
+			} else if (targetType === 'resize') {
+				showMoreBlocksRegular && showMoreBlocksRegular.length ? initItems(showMoreBlocksRegular) : null;
+				mdQueriesArray && mdQueriesArray.length ? initItemsMedia(mdQueriesArray) : null;
+			}
+		}
+	});
 }
-// Модуль попапов ===========================================================================================================================================================================================================================
-/*
-Документация по работе в шаблоне:
-data-popup - Атрибут для кнопки, которая вызывает попап
-data-close - Атрибут для кнопки, которая закрывает попап
-data-youtube - Атрибут для кода youtube
-Сниппет (HTML): pl
-*/
-import { Popup } from "../libs/popup.js";
-export const initPopups = () => new Popup({});
-
-// Модуль параллакса мышью ===========================================================================================================================================================================================================================
-/*
-Документация по работе в шаблоне:
-Сниппет (HTML): 
-*/
-import { MousePRLX } from "../libs/parallax-mouse.js";
-export const initParallaxMouse = () => new MousePRLX({});
-
 //================================================================================================================================================================================================================================================================================================================
 // Прочие полезные функции ================================================================================================================================================================================================================================================================================================================
 //================================================================================================================================================================================================================================================================================================================
@@ -597,7 +602,7 @@ export function dataMediaQueries(array, dataSetValue) {
 			return '(' + item.type + "-width: " + item.value + "px)," + item.value + ',' + item.type;
 		});
 		mdQueries = uniqArray(mdQueries);
-		const mdQueriesArray = []
+		const mdQueriesArray = [];
 
 		if (mdQueries.length) {
 			// Работаем с каждым брейкпоинтом

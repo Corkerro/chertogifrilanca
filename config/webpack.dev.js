@@ -28,6 +28,7 @@ if (!pugPages.length) {
 	})];
 }
 
+
 const paths = {
 	src: path.resolve(srcFolder),
 	build: path.resolve(builFolder)
@@ -55,6 +56,7 @@ const config = {
 		hot: true,
 		watchFiles: [
 			`${paths.src}/**/*.html`,
+			`${paths.src}/**/*.pug`,
 			`${paths.src}/**/*.htm`,
 			`${paths.src}/img/**/*.*`
 		],

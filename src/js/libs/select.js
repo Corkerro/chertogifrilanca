@@ -1,5 +1,6 @@
 // Подключение функционала "Чертогов Фрилансера"
 import { isMobile, _slideUp, _slideDown, _slideToggle, FLS } from "../files/functions.js";
+import { flsModules } from "../files/modules.js";
 import { formValidate } from "../files/forms/forms.js";
 
 // Подключение файла стилей
@@ -40,7 +41,7 @@ data-href-blank - откроет ссылку в новом окне
 */
 
 // Класс построения Select
-export class SelectConstructor {
+class SelectConstructor {
 	constructor(props, data = null) {
 		let defaultConfig = {
 			init: true,
@@ -462,4 +463,7 @@ export class SelectConstructor {
 		this.config.logging ? FLS(`[select]: ${message}`) : null;
 	}
 }
+// Запускаем и добавляем в объект модулей
+flsModules.select = new SelectConstructor({});
+
 

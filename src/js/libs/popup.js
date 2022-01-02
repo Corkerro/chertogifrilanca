@@ -1,11 +1,17 @@
+// Модуль попапов
 // (c) Фрилансер по жизни, Хмурый Кот
-// Документация: 
+// Документация по работе в шаблоне:
+// data-popup - Атрибут для кнопки, которая вызывает попап
+// data-close - Атрибут для кнопки, которая закрывает попап
+// data-youtube - Атрибут для кода youtube
+// Сниппет (HTML): pl
 
 // Подключение функционала "Чертогов Фрилансера"
 import { isMobile, bodyLockStatus, bodyLockToggle, FLS } from "../files/functions.js";
+import { flsModules } from "../files/modules.js";
 
 // Класс Popup
-export class Popup {
+class Popup {
 	constructor(options) {
 		let config = {
 			logging: true,
@@ -143,15 +149,7 @@ export class Popup {
 				return;
 			}
 		}.bind(this))
-		// Событие отправки формы
-		if (document.querySelector('form[data-ajax],form[data-dev]')) {
-			document.addEventListener("formSent", function (e) {
-				const popup = e.detail.form.dataset.popupMessage;
-				if (popup) {
-					this.open(popup);
-				}
-			}.bind(this));
-		}
+
 		// Открытие по хешу
 		if (this.options.hashSettings.goHash) {
 			// Проверка изменения адресной строки
@@ -335,3 +333,5 @@ export class Popup {
 		this.options.logging ? FLS(`[Попапос]: ${message}`) : null;
 	}
 }
+// Запускаем и добавляем в объект модулей
+flsModules.popup = new Popup({});

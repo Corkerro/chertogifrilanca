@@ -1,8 +1,10 @@
+// Модуль параллакса мышью 
 // (c) Фрилансер по жизни, Хмурый Кот
 // Документация: 
 
 // Подключение функционала "Чертогов Фрилансера"
 import { isMobile, FLS } from "../files/functions.js";
+import { flsModules } from "../files/modules.js";
 
 /*
 Предмету, который будет двигаться за мышью указать атрибут data-prlx-mouse.
@@ -28,8 +30,7 @@ data-prlx-a="скорость_анимации"				50								больше зна
 	top: -15%;
 	left: -15%;
 */
-
-export class MousePRLX {
+class MousePRLX {
 	constructor(props, data = null) {
 		let defaultConfig = {
 			init: true,
@@ -106,4 +107,6 @@ export class MousePRLX {
 		this.config.logging ? FLS(`[PRLX Mouse]: ${message}`) : null;
 	}
 }
+// Запускаем и добавляем в объект модулей
+flsModules.mousePrlx = new MousePRLX({});
 

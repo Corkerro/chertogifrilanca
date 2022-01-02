@@ -26,7 +26,7 @@
 		"scope": "html",
 		"prefix": "tabs",
 		"body": [
-			"<div data-tabs class=\"tabs\">\n\t<nav data-tabs-titles class=\"tabs__navigation\">\n\t\t<button type=\"submit\" class=\"tabs__title _tab-active\">Таб №1</button>\n\t\t<button type=\"submit\" class=\"tabs__title\">Таб №2</button>\n\t\t<button type=\"submit\" class=\"tabs__title\">Таб №3</button>\n\t</nav>\n\t<div data-tabs-body class=\"tabs__content\">\n\t\t<div class=\"tabs__body\">\n\t\t\t1 Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore odio exercitationem, excepturi similique nulla, voluptatem reprehenderit neque a minima eaque tenetur? Quos fugit voluptate enim quo sed, minima error molestias!\n\t\t</div>\n\t\t<div class=\"tabs__body\">\n\t\t\t2 Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore odio exercitationem, excepturi similique nulla, voluptatem reprehenderit neque a minima eaque tenetur? Quos fugit voluptate enim quo sed, minima error molestias!\n\t\t</div>\n\t\t<div class=\"tabs__body\">\n\t\t\t3 Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore odio exercitationem, excepturi similique nulla, voluptatem reprehenderit neque a minima eaque tenetur? Quos fugit voluptate enim quo sed, minima error molestias!\n\t\t</div>\n\t</div>\n</div>"
+			"<div data-tabs class=\"${1:tabs}\">\n\t<nav data-tabs-titles class=\"${1:tabs}__navigation\">\n\t\t<button type=\"button\" class=\"${1:tabs}__title _tab-active\">Таб №1</button>\n\t\t<button type=\"button\" class=\"${1:tabs}__title\">Таб №2</button>\n\t\t<button type=\"button\" class=\"${1:tabs}__title\">Таб №3</button>\n\t</nav>\n\t<div data-tabs-body class=\"${1:tabs}__content\">\n\t\t<div class=\"${1:tabs}__body\">\n\t\t\t1 Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore odio exercitationem, excepturi similique nulla, voluptatem reprehenderit neque a minima eaque tenetur? Quos fugit voluptate enim quo sed, minima error molestias!\n\t\t</div>\n\t\t<div class=\"${1:tabs}__body\">\n\t\t\t2 Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore odio exercitationem, excepturi similique nulla, voluptatem reprehenderit neque a minima eaque tenetur? Quos fugit voluptate enim quo sed, minima error molestias!\n\t\t</div>\n\t\t<div class=\"${1:tabs}__body\">\n\t\t\t3 Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore odio exercitationem, excepturi similique nulla, voluptatem reprehenderit neque a minima eaque tenetur? Quos fugit voluptate enim quo sed, minima error molestias!\n\t\t</div>\n\t</div>\n</div>"
 		],
 		"description": "Добавляет базовый HTML код табов"
 	},
@@ -34,7 +34,7 @@
 		"scope": "html",
 		"prefix": "showmore",
 		"body": [
-			"<div data-showmore class=\"${1:block}\">\n\t<div data-showmore-content class=\"${1:block}__content\"></div>\n\t<button data-showmore-button type=\"button\" class=\"${1:block}__more\"><span>Показать еще</span><span>Скыть</span></button>\n</div>"
+			"<div data-showmore class=\"${1:block}\">\n\t<div data-showmore-content class=\"${1:block}__content\"></div>\n\t<button hidden data-showmore-button type=\"button\" class=\"${1:block}__more\"><span>Показать еще</span><span>Скыть</span></button>\n</div>"
 		],
 		"description": "Добавляет базовый HTML код блока 'показать еще'"
 	},
@@ -80,7 +80,7 @@
 		"scope": "html",
 		"prefix": "ibg",
 		"body": [
-			"<div class=\"${1:имя блока}__image-ibg\"><img src=\"@img$2\" alt=\"\"></div>"
+			"<div class=\"${1:имя блока}__image-ibg\"><img data-src=\"@img$2\" alt=\"\"></div>"
 		],
 		"description": "Добавляет объект с картинкой и классом IBG"
 	},
@@ -88,7 +88,7 @@
 		"scope": "html",
 		"prefix": "ibga",
 		"body": [
-			"<a href=\"\" class=\"${1:имя блока}__image-ibg\"><img src=\"@img$2\" alt=\"\"></a>"
+			"<a href=\"\" class=\"${1:имя блока}__image-ibg\"><img data-src=\"@img$2\" alt=\"\"></a>"
 		],
 		"description": "Добавляет ссылку с картинкой и классом IBG"
 	},
@@ -159,6 +159,18 @@
 			"math.div($1,$2)"
 		],
 		"description": "Деление чисел"
+	},
+	"Width with REM": {
+		"scope": "scss",
+		"prefix": "w",
+		"body": "width: rem($1);",
+		"description": "Добавляет width c переводом в REM"
+	},
+	"Height with REM": {
+		"scope": "scss",
+		"prefix": "h",
+		"body": "height: rem($1);",
+		"description": "Добавляет height c переводом в REM"
 	},
 	"Margin bottom with EM": {
 		"scope": "scss",
@@ -276,47 +288,12 @@
 		],
 		"description": "z-index"
 	},
-	"avv": {
-		"prefix": "avv",
+	"fbpp": {
+		"prefix": "fbpp",
 		"body": [
-			"@include adaptivValueWH(\"$1\", $2, $3);"
+			"flex: 0 0 percent($1, $2);"
 		],
-		"description": "adaptivValueWH"
-	},
-	"pi": {
-		"prefix": "pi",
-		"body": [
-			"@include adaptiv-value(\"padding\", 60, 20, 0);"
-		],
-		"description": "padding"
-	},
-	"pil": {
-		"prefix": "pil",
-		"body": [
-			"@include adaptiv-value(\"padding-left\", 60, 20, 0);"
-		],
-		"description": "padding"
-	},
-	"pir": {
-		"prefix": "pir",
-		"body": [
-			"@include adaptiv-value(\"padding-right\", 60, 20, 0);"
-		],
-		"description": "padding"
-	},
-	"pit": {
-		"prefix": "pit",
-		"body": [
-			"@include adaptiv-value(\"padding-top\", 60, 20, 0);"
-		],
-		"description": "padding"
-	},
-	"pib": {
-		"prefix": "pib",
-		"body": [
-			"@include adaptiv-value(\"padding-bottom\", 60, 20, 0);"
-		],
-		"description": "padding"
+		"description": "fbpp"
 	},
 	"pp": {
 		"prefix": "pp",
@@ -912,12 +889,12 @@
 	},
 	"logo": {
 		"prefix": "logo",
-		"body": "<a href=\"\" class=\"header__logo\"><img src=\"../img/logo.svg\" alt=\"\"></a>",
+		"body": "<a href=\"\" class=\"header__logo\"><img data-src=\"../img/logo.svg\" alt=\"\"></a>",
 		"description": "logo"
 	},
 	"Image": {
 		"prefix": "img",
-		"body": "<img src=\"@img$0\" alt=\"\">",
+		"body": "<img data-src=\"@img$0\" alt=\"\">",
 		"description": "img"
 	},
 	/*
